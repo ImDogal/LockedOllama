@@ -5,6 +5,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func ollamaHealthCheck(ollamaBaseURL string) string {
@@ -21,7 +24,15 @@ func ollamaHealthCheck(ollamaBaseURL string) string {
 
 func main() {
 
-	var Token string = "tokentestng"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	apiKey := os.Getenv("API_KEY")
+	ollamaBaseURL := os.Getenv("OLLAMA_URL")
+	exposeURL := os.Getenv("EXPOSE_URL")
+	exposePort := os.Getenv("EXPOSE_PORT")
 
 	var ollamaEndpoints = map[string]map[string]bool{
 		"GET": {
@@ -45,9 +56,6 @@ func main() {
 		},
 	}
 
-	var ollamaBaseURL string = "http://localhost:11434/"
-	var exposeURL string = "0.0.0.0:17434"
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.URL.Path)
 		if !ollamaEndpoints[r.Method][r.URL.Path] {
@@ -55,7 +63,7 @@ func main() {
 			return
 		} else {
 			headerToken := r.Header.Get("Authorization")
-			if headerToken == Token {
+			if headerToken == apiKey {
 				requestURL := fmt.Sprintf("%s%s", ollamaBaseURL, r.URL.Path)
 				repassReq, err := http.NewRequest(r.Method, requestURL, r.Body)
 				if err != nil {
@@ -77,7 +85,7 @@ func main() {
 		}
 	})
 
-	err := http.ListenAndServe(exposeURL, nil)
+	err = http.ListenAndServe(fmt.Sprintf("%s:%s", exposeURL, exposePort), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
