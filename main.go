@@ -33,6 +33,7 @@ func main() {
 	ollamaBaseURL := os.Getenv("OLLAMA_URL")
 	exposeURL := os.Getenv("EXPOSE_URL")
 	exposePort := os.Getenv("EXPOSE_PORT")
+	blockDestructive := os.Getenv("BLOCK_DESTRUCTIVE_ENDPOINTS")
 
 	var ollamaEndpoints = map[string]map[string]bool{
 		"GET": {
@@ -46,14 +47,31 @@ func main() {
 			"/api/chat":     true,
 			"/api/embed":    true,
 			"/api/show":     true,
-			"/api/create":   true,
-			"/api/copy":     true,
-			"/api/pull":     true,
-			"/api/push":     true,
 		},
-		"DELETE": {
-			"/api/delete": true,
-		},
+	}
+
+	if blockDestructive == "FALSE" {
+		ollamaEndpoints = map[string]map[string]bool{
+			"GET": {
+				"/":            true,
+				"/api/tags":    true,
+				"/api/ps":      true,
+				"/api/version": true,
+			},
+			"POST": {
+				"/api/generate": true,
+				"/api/chat":     true,
+				"/api/embed":    true,
+				"/api/show":     true,
+				"/api/create":   true,
+				"/api/copy":     true,
+				"/api/pull":     true,
+				"/api/push":     true,
+			},
+			"DELETE": {
+				"/api/delete": true,
+			},
+		}
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
