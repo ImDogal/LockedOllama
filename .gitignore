@@ -7,7 +7,7 @@
 *.dll
 *.so
 *.dylib
-
+LockedOllama
 # Test binary, built with `go test -c`
 *.test
 
